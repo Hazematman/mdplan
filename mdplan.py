@@ -63,6 +63,9 @@ def onRowCollapsed(treeView, treeIter, treePath):
     # append dummy node
     treeStore.append(treeIter, [None, None, None])
 
+#def testRes(webview, frame, webresource, request, response):
+#    print request.get_uri()
+
 class Application:
     def __init__(self, project):
         self.project = project
@@ -105,6 +108,19 @@ class Application:
 
         self.window.show_all()
 
+        self.webview.connect('resource-request-starting', self.testRes)
+        self.curFile = ""
+
+    def testRes(self, webview, frame, webresource, request, response):
+        uri = request.get_uri()
+        fileName = uri.replace("file://", "")
+        name, ext = os.path.splitext(fileName)
+
+        if ext == ".md":
+            if fileName != self.curFile:
+                request.set_uri("about:blank")
+                self.setFile(fileName)
+
     def onRowActive(self, treeView, path, column):
         selection = treeView.get_selection()
 
@@ -112,17 +128,23 @@ class Application:
         for path in pathlist:
             treeIt = model.get_iter(path)
             fileName = model.get_value(treeIt, 2)
-            name, ext = os.path.splitext(fileName)
 
-            if ext != ".md":
-                return
+            self.setFile(fileName)
 
-            data = ""
-            with open(fileName, 'r') as file:
-                data = file.read()
 
-            mdtext = markdown.markdown(data)
-            self.webview.load_html_string(mdtext, "file://{}".format(fileName))
+    def setFile(self, fileName):
+        name, ext = os.path.splitext(fileName)
+
+        if ext != ".md":
+            return
+
+        data = ""
+        with open(fileName, 'r') as file:
+            data = file.read()
+
+        mdtext = markdown.markdown(data)
+        self.curFile = fileName
+        self.webview.load_html_string(mdtext, "file://{}".format(fileName))
 
     def run(self):
         Gtk.main()
