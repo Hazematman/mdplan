@@ -29,10 +29,14 @@ def populateFileTree(treeStore, path, parent=None):
         itemIcon = Gtk.IconTheme.get_default().load_icon("folder" if itemIsFolder else "text-x-generic", 22, 0)
         # Append the item to the TreeStore
         if ext == ".md" or itemIsFolder:
-            currentIter = treeStore.append(parent, [item, itemIcon, itemFullname])
+            parts = name.split("/")
+            if(parts[-1][0] != '.'):
+                currentIter = treeStore.append(parent, [item, itemIcon, itemFullname])
         # add dummy if current item was a folder
         if itemIsFolder:
-            treeStore.append(currentIter, [None, None, None])
+            parts = name.split("/")
+            if(parts[-1][0] != '.'):
+                treeStore.append(currentIter, [None, None, None])
         #increment the item counter
         itemCounter += 1
     # add the dummy node back if nothing was inserted before
